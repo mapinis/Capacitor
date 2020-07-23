@@ -1,6 +1,5 @@
-[
-  {
-    "id": "mountainside",
+{
+  "mountainside": {
     "name": "Mountainside Pool",
     "capacity": 90,
     "coordinates": {
@@ -8,4 +7,4 @@
       "lat": -74.203941
     }
   }
-]
+}

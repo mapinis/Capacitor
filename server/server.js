@@ -61,3 +61,29 @@ passport.use(
     return done(null, false, { message: "Incorrect Credentials" });
   })
 );
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+// might need user serialization for session to work
+
+/* LOAD DATA */
+const locations = require("./loadLocationData")();
+
+/* SOCKET */
+
+/* ENDPOINTS */
+
+// serve frontend
+const path = require("path");
+app.use(express.static(path.join(__dirname, "client/build")));
+
+app.get("*", (_, res) => {
+  res.sendFile(path.join(__dirname, "../client/build/index.html"));
+});
+
+// RUN IT
+const port = process.env.PORT || 8080;
+app.listen(port, () => {
+  console.log("Server listening on " + port);
+});
