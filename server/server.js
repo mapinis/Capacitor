@@ -1,8 +1,8 @@
 require("dotenv").config();
-const express = require("express");
-const bodyParser = require("body-parser");
 
 /* Build Server */
+const express = require("express");
+const bodyParser = require("body-parser");
 
 const app = express();
 app.use(require("morgan")("dev"));
@@ -30,10 +30,9 @@ if (process.env.DEV) {
   });
 }
 
+// set up authentication
 const passport = requrie("passport");
 const LocalStrategy = require("passport-local").Strategy;
-
-// set up authentication
 
 const adminUsername = process.env.ADMIN_USERNAME;
 const adminPassword = process.env.ADMIN_PASSWORD;
@@ -63,7 +62,28 @@ passport.use(
 );
 
 app.use(passport.initialize());
+
+// sessions
+
+const uuid = require("uuid/v1");
+const sessionIDs = [];
+
 app.use(passport.session());
+
+passport.serializeUser((_, done) => {
+  const id = uuid();
+  sessionIDs.push(id);
+  return done(null, id);
+});
+
+passport.deserializeUser((id, done) => {
+  if (sessionIDs.includes(id)) {
+    sessionIDs.splice(sessionIDs.indexOf(id), 1);
+    return done(null, true);
+  }
+
+  return done(null, false, { message: "Deserialization error" });
+});
 
 // might need user serialization for session to work
 
@@ -71,8 +91,216 @@ app.use(passport.session());
 const locations = require("./loadLocationData")();
 
 /* SOCKET */
+const io = require("socket.io")(app);
+
+io.on("connection", (socket) => {
+  // send initial data to client
+  socket.emit("locations", locations);
+});
 
 /* ENDPOINTS */
+app.post("/api/login", (req, res, next) => {
+  passport.authenticate("local", (err, user, info) => {
+    if (err) {
+      return res.status(500).json({ error: err });
+    }
+
+    if (!user) {
+      return res.status(401).json({ error: info });
+    }
+
+    req.login(user, (err) => {
+      if (err) {
+        return res.status(500).json({ error: err });
+      }
+
+      return res.status(200);
+    });
+  })(req, res, next);
+});
+
+app.get("/api/validateSession", (req, res, next) => {
+  passport.authenticate("session", (err) => {
+    if (err) {
+      return res.status(500).json({ error: err });
+    }
+
+    if (!req.user) {
+      return res.status(200).json({ validSession: false });
+    }
+
+    return res.status(200).json({ validSession: true });
+  })(req, res, next);
+});
+
+app.post("/api/addOne", (req, res, next) => {
+  passport.authenticate("session", (err) => {
+    if (err) {
+      return res.status(500).json({ error: err });
+    }
+
+    if (!req.user) {
+      return res.status(401).json({ error: { message: "Not logged in." } });
+    }
+
+    if (!req.body.locationID) {
+      return res.status(400).json({
+        error: {
+          message:
+            "Requires JSON body property 'locationID' with id of location being edited.",
+        },
+      });
+    }
+
+    const locationID = req.body.locationID;
+
+    if (!locations[locationID]) {
+      return res.status(400).json({ error: { message: "Bad locationID" } });
+    }
+
+    if (
+      locations[locationID].population != locations[locationID].capacity &&
+      locations[locationID].open
+    ) {
+      // actually add one to population now
+      locations[locationID].population += 1;
+      io.emit("update", {
+        [locationID]: {
+          population: locations[locationID].population,
+        },
+      });
+    }
+
+    return res.status(200);
+  })(req, res, next);
+});
+
+app.post("/api/subOne", (req, res, next) => {
+  passport.authenticate("session", (err) => {
+    if (err) {
+      return res.status(500).json({ error: err });
+    }
+
+    if (!req.user) {
+      return res.status(401).json({ error: { message: "Not logged in." } });
+    }
+
+    if (!req.body.locationID) {
+      return res.status(400).json({
+        error: {
+          message:
+            "Requires JSON body property 'locationID' with id of location being edited.",
+        },
+      });
+    }
+
+    const locationID = req.body.locationID;
+
+    if (!locations[locationID]) {
+      return res.status(400).json({ error: { message: "Bad locationID" } });
+    }
+
+    // actually sub one from population now
+    if (locations[locationID].population != 0 && locations[locationID].open) {
+      locations[locationID].population -= 1;
+      io.emit("update", {
+        [locationID]: {
+          population: locations[locationID].population,
+        },
+      });
+    }
+
+    return res.status(200);
+  })(req, res, next);
+});
+
+app.post("/api/setPopulation", (req, res, next) => {
+  passport.authenticate("session", (err) => {
+    if (err) {
+      return res.status(500).json({ error: err });
+    }
+
+    if (!req.user) {
+      return res.status(401).json({ error: { message: "Not logged in." } });
+    }
+
+    if (!req.body.locationID || !req.body.newPop) {
+      return res.status(400).json({
+        error: {
+          message:
+            "Requires JSON body properties 'locationID' with id of location being edited and 'newPop' with the new population number.",
+        },
+      });
+    }
+
+    const locationID = req.body.locationID;
+    const newPop = req.body.newPop;
+
+    if (!locations[locationID]) {
+      return res.status(400).json({ error: { message: "Bad locationID" } });
+    }
+
+    if (newPop < 0 || newPop > locations[locationID].capacity) {
+      return res.status(400).json({
+        error: {
+          message:
+            "Invalid new population amount, either less than 0 or larger than capacity",
+        },
+      });
+    }
+
+    if (locations[locationID].open) {
+      // actually set population now
+      locations[locationID].population = newPop;
+      io.emit("update", {
+        [locationID]: {
+          population: newPop,
+        },
+      });
+    }
+
+    return res.status(200);
+  })(req, res, next);
+});
+
+app.post("/api/toggleOpen", (req, res, next) => {
+  passport.authenticate("session", (err) => {
+    if (err) {
+      return res.status(500).json({ error: err });
+    }
+
+    if (!req.user) {
+      return res.status(401).json({ error: { message: "Not logged in." } });
+    }
+
+    if (!req.body.locationID) {
+      return res.status(400).json({
+        error: {
+          message:
+            "Requires JSON body property 'locationID' with id of location being edited.",
+        },
+      });
+    }
+
+    const locationID = req.body.locationID;
+
+    if (!locations[locationID]) {
+      return res.status(400).json({ error: { message: "Bad locationID" } });
+    }
+
+    // actually change open status now
+    locations[locationID].open = !locations[locationID].open;
+    locations[locationID].population = 0;
+    io.emit("update", {
+      [locationID]: {
+        open: locations[locationID].open,
+        population: 0,
+      },
+    });
+
+    return res.status(200);
+  })(req, res, next);
+});
 
 // serve frontend
 const path = require("path");
