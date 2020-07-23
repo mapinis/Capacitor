@@ -1,0 +1,11 @@
+[
+  {
+    "id": "mountainside",
+    "name": "Mountainside Pool",
+    "capacity": 90,
+    "coordinates": {
+      "long": 40.852465,
+      "lat": -74.203941
+    }
+  }
+]
