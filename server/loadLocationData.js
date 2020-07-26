@@ -7,9 +7,9 @@ function loadLocations() {
   }
 
   const locationData = JSON.parse(fs.readFileSync("data.json"));
-  for (let location in locationData) {
-    location.population = 0;
-    location.open = false;
+  for (let locationID in locationData) {
+    locationData[locationID].population = 0;
+    locationData[locationID].open = false;
     // here is where we load image(s) from Google Maps API too
   }
 

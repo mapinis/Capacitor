@@ -43,49 +43,53 @@ if (!adminPassword) {
   adminPassword = "admin";
 }
 
+const { v1: uuid } = require("uuid");
+const sessions = new Map();
+
 passport.use(
-  new LocalStrategy(async (username, password, done) => {
-    // the 'username' here is just the location id of the location being edited
+  new LocalStrategy(
+    {
+      usernameField: "locationID",
+    },
+    async (locationID, password, done) => {
+      // the 'username' here is just the location id of the location being edited
 
-    if (!(username in locations)) {
-      return done(null, false, { message: "Unknown location ID as username" });
+      if (!(locationID in locations)) {
+        return done(null, false, {
+          message: "Unknown location ID as username",
+        });
+      }
+
+      if (password !== adminPassword) {
+        return done(null, false, { message: "Incorrect credentials" });
+      }
+
+      console.log("Admin successfully logged in");
+      const id = uuid();
+      sessions.set(id, locationID);
+      return done(null, { id: id, locationID: locationID });
     }
-
-    if (password !== adminPassword) {
-      return done(null, false, { message: "Incorrect credentials" });
-    }
-
-    console.log("Admin successfully logged in");
-    return done(null, { locationID: username });
-  })
+  )
 );
 
 app.use(passport.initialize());
 
 // sessions
-
-const { v1: uuid } = require("uuid");
-const sessions = new Map();
-
 app.use(passport.session());
 
 passport.serializeUser((user, done) => {
-  const id = uuid();
-  sessions.set(id, user.locationID);
-  return done(null, id);
+  console.log("serializing");
+  return done(null, user.id);
 });
 
 passport.deserializeUser((id, done) => {
+  console.log("deserializing");
   if (sessions.has(id)) {
-    const user = { locationID: sessions.get(id) };
-    sessions.delete(id);
-    return done(null, user);
+    return done(null, { id: id, locationID: sessions.get(id) });
   }
 
   return done(null, false, { message: "Deserialization error" });
 });
-
-// might need user serialization for session to work
 
 /* LOAD DATA */
 const locations = require("./loadLocationData")();
@@ -95,6 +99,7 @@ const io = require("socket.io")(http);
 
 io.on("connection", (socket) => {
   // send initial data to client
+  console.log("User connected");
   socket.emit("locations", locations);
 });
 
@@ -115,7 +120,7 @@ app.post("/api/login", (req, res, next) => {
         return res.status(500).json({ error: err });
       }
 
-      return res.status(200);
+      return res.status(200).json({ status: "ok" });
     });
   })(req, res, next);
 });
