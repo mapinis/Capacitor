@@ -5,6 +5,8 @@ const express = require("express");
 const bodyParser = require("body-parser");
 
 const app = express();
+const http = require("http").createServer(app);
+
 app.use(require("morgan")("dev"));
 app.use(
   require("express-session")({
@@ -31,16 +33,10 @@ if (process.env.DEV) {
 }
 
 // set up authentication
-const passport = requrie("passport");
+const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
 
-const adminUsername = process.env.ADMIN_USERNAME;
 const adminPassword = process.env.ADMIN_PASSWORD;
-
-if (!adminUsername) {
-  console.warn("ADMIN_USERNAME not set in .env, defaulting to 'admin'");
-  adminUsername = "admin";
-}
 
 if (!adminPassword) {
   console.warn("ADMIN_PASSWORD not set in .env, defaulting to 'admin'");
@@ -49,15 +45,18 @@ if (!adminPassword) {
 
 passport.use(
   new LocalStrategy(async (username, password, done) => {
-    // yea sure a username isn't really needed, but in the end having two fields will make people feel better,
-    // and if I eventually seperate into multiple admin accounts, it will be useful.
+    // the 'username' here is just the location id of the location being edited
 
-    if (username === adminUsername && password === adminPassword) {
-      console.log("Admin successfully logged in");
-      return done(null, true);
+    if (!(username in locations)) {
+      return done(null, false, { message: "Unknown location ID as username" });
     }
 
-    return done(null, false, { message: "Incorrect Credentials" });
+    if (password !== adminPassword) {
+      return done(null, false, { message: "Incorrect credentials" });
+    }
+
+    console.log("Admin successfully logged in");
+    return done(null, { locationID: username });
   })
 );
 
@@ -65,21 +64,22 @@ app.use(passport.initialize());
 
 // sessions
 
-const uuid = require("uuid/v1");
-const sessionIDs = [];
+const { v1: uuid } = require("uuid");
+const sessions = new Map();
 
 app.use(passport.session());
 
-passport.serializeUser((_, done) => {
+passport.serializeUser((user, done) => {
   const id = uuid();
-  sessionIDs.push(id);
+  sessions.set(id, user.locationID);
   return done(null, id);
 });
 
 passport.deserializeUser((id, done) => {
-  if (sessionIDs.includes(id)) {
-    sessionIDs.splice(sessionIDs.indexOf(id), 1);
-    return done(null, true);
+  if (sessions.has(id)) {
+    const user = { locationID: sessions.get(id) };
+    sessions.delete(id);
+    return done(null, user);
   }
 
   return done(null, false, { message: "Deserialization error" });
@@ -91,7 +91,7 @@ passport.deserializeUser((id, done) => {
 const locations = require("./loadLocationData")();
 
 /* SOCKET */
-const io = require("socket.io")(app);
+const io = require("socket.io")(http);
 
 io.on("connection", (socket) => {
   // send initial data to client
@@ -99,6 +99,7 @@ io.on("connection", (socket) => {
 });
 
 /* ENDPOINTS */
+// Login with locationID and admin password
 app.post("/api/login", (req, res, next) => {
   passport.authenticate("local", (err, user, info) => {
     if (err) {
@@ -119,6 +120,7 @@ app.post("/api/login", (req, res, next) => {
   })(req, res, next);
 });
 
+// Make sure that the session is valid
 app.get("/api/validateSession", (req, res, next) => {
   passport.authenticate("session", (err) => {
     if (err) {
@@ -133,6 +135,7 @@ app.get("/api/validateSession", (req, res, next) => {
   })(req, res, next);
 });
 
+// Add one to the population of the admin's location
 app.post("/api/addOne", (req, res, next) => {
   passport.authenticate("session", (err) => {
     if (err) {
@@ -143,21 +146,15 @@ app.post("/api/addOne", (req, res, next) => {
       return res.status(401).json({ error: { message: "Not logged in." } });
     }
 
-    if (!req.body.locationID) {
-      return res.status(400).json({
-        error: {
-          message:
-            "Requires JSON body property 'locationID' with id of location being edited.",
-        },
-      });
-    }
-
-    const locationID = req.body.locationID;
+    const locationID = req.user.locationID;
 
     if (!locations[locationID]) {
-      return res.status(400).json({ error: { message: "Bad locationID" } });
+      return res
+        .status(400)
+        .json({ error: { message: "Bad user locationID" } });
     }
 
+    // TODO: should locations be allowed to go over capacity? legally of course not, but what if some scenario it does happen, should this still keep track?
     if (
       locations[locationID].population != locations[locationID].capacity &&
       locations[locationID].open
@@ -175,6 +172,7 @@ app.post("/api/addOne", (req, res, next) => {
   })(req, res, next);
 });
 
+// Subtract one from the population of the admin's location
 app.post("/api/subOne", (req, res, next) => {
   passport.authenticate("session", (err) => {
     if (err) {
@@ -185,19 +183,12 @@ app.post("/api/subOne", (req, res, next) => {
       return res.status(401).json({ error: { message: "Not logged in." } });
     }
 
-    if (!req.body.locationID) {
-      return res.status(400).json({
-        error: {
-          message:
-            "Requires JSON body property 'locationID' with id of location being edited.",
-        },
-      });
-    }
-
-    const locationID = req.body.locationID;
+    const locationID = req.user.locationID;
 
     if (!locations[locationID]) {
-      return res.status(400).json({ error: { message: "Bad locationID" } });
+      return res
+        .status(400)
+        .json({ error: { message: "Bad user locationID" } });
     }
 
     // actually sub one from population now
@@ -214,6 +205,7 @@ app.post("/api/subOne", (req, res, next) => {
   })(req, res, next);
 });
 
+// Set the population of the admin's location, with the set value being in the request body under "newPops"
 app.post("/api/setPopulation", (req, res, next) => {
   passport.authenticate("session", (err) => {
     if (err) {
@@ -224,16 +216,16 @@ app.post("/api/setPopulation", (req, res, next) => {
       return res.status(401).json({ error: { message: "Not logged in." } });
     }
 
-    if (!req.body.locationID || !req.body.newPop) {
+    if (!req.body.newPop) {
       return res.status(400).json({
         error: {
           message:
-            "Requires JSON body properties 'locationID' with id of location being edited and 'newPop' with the new population number.",
+            "Requires JSON body property 'newPop' with the new population number.",
         },
       });
     }
 
-    const locationID = req.body.locationID;
+    const locationID = req.user.locationID;
     const newPop = req.body.newPop;
 
     if (!locations[locationID]) {
@@ -263,6 +255,7 @@ app.post("/api/setPopulation", (req, res, next) => {
   })(req, res, next);
 });
 
+// Toggle open/close of the admin's location
 app.post("/api/toggleOpen", (req, res, next) => {
   passport.authenticate("session", (err) => {
     if (err) {
@@ -273,19 +266,12 @@ app.post("/api/toggleOpen", (req, res, next) => {
       return res.status(401).json({ error: { message: "Not logged in." } });
     }
 
-    if (!req.body.locationID) {
-      return res.status(400).json({
-        error: {
-          message:
-            "Requires JSON body property 'locationID' with id of location being edited.",
-        },
-      });
-    }
-
-    const locationID = req.body.locationID;
+    const locationID = req.user.locationID;
 
     if (!locations[locationID]) {
-      return res.status(400).json({ error: { message: "Bad locationID" } });
+      return res
+        .status(400)
+        .json({ error: { message: "Bad user locationID" } });
     }
 
     // actually change open status now
@@ -312,6 +298,6 @@ app.get("*", (_, res) => {
 
 // RUN IT
 const port = process.env.PORT || 8080;
-app.listen(port, () => {
+http.listen(port, () => {
   console.log("Server listening on " + port);
 });

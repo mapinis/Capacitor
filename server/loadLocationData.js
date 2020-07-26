@@ -13,7 +13,7 @@ function loadLocations() {
     // here is where we load image(s) from Google Maps API too
   }
 
-  return locations;
+  return locationData;
 }
 
 module.exports = loadLocations;
