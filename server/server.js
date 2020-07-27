@@ -64,7 +64,6 @@ passport.use(
         return done(null, false, { message: "Incorrect credentials" });
       }
 
-      console.log("Admin successfully logged in");
       const id = uuid();
       sessions.set(id, locationID);
       return done(null, { id: id, locationID: locationID });
@@ -78,12 +77,10 @@ app.use(passport.initialize());
 app.use(passport.session());
 
 passport.serializeUser((user, done) => {
-  console.log("serializing");
   return done(null, user.id);
 });
 
 passport.deserializeUser((id, done) => {
-  console.log("deserializing");
   if (sessions.has(id)) {
     return done(null, { id: id, locationID: sessions.get(id) });
   }
@@ -99,7 +96,6 @@ const io = require("socket.io")(http);
 
 io.on("connection", (socket) => {
   // send initial data to client
-  console.log("User connected");
   socket.emit("locations", locations);
 });
 
@@ -120,14 +116,15 @@ app.post("/api/login", (req, res, next) => {
         return res.status(500).json({ error: err });
       }
 
-      return res.status(200).json({ status: "ok" });
+      console.log("Admin successfully logged in from " + req.ip);
+      return res.status(200).send();
     });
   })(req, res, next);
 });
 
 // Make sure that the session is valid
 app.get("/api/validateSession", (req, res, next) => {
-  passport.authenticate("session", (err) => {
+  passport.authenticate("local", (err) => {
     if (err) {
       return res.status(500).json({ error: err });
     }
@@ -142,7 +139,7 @@ app.get("/api/validateSession", (req, res, next) => {
 
 // Add one to the population of the admin's location
 app.post("/api/addOne", (req, res, next) => {
-  passport.authenticate("session", (err) => {
+  passport.authenticate("local", (err) => {
     if (err) {
       return res.status(500).json({ error: err });
     }
@@ -173,13 +170,13 @@ app.post("/api/addOne", (req, res, next) => {
       });
     }
 
-    return res.status(200);
+    return res.status(200).send();
   })(req, res, next);
 });
 
 // Subtract one from the population of the admin's location
 app.post("/api/subOne", (req, res, next) => {
-  passport.authenticate("session", (err) => {
+  passport.authenticate("local", (err) => {
     if (err) {
       return res.status(500).json({ error: err });
     }
@@ -206,13 +203,13 @@ app.post("/api/subOne", (req, res, next) => {
       });
     }
 
-    return res.status(200);
+    return res.status(200).send();
   })(req, res, next);
 });
 
 // Set the population of the admin's location, with the set value being in the request body under "newPops"
 app.post("/api/setPopulation", (req, res, next) => {
-  passport.authenticate("session", (err) => {
+  passport.authenticate("local", (err) => {
     if (err) {
       return res.status(500).json({ error: err });
     }
@@ -256,13 +253,13 @@ app.post("/api/setPopulation", (req, res, next) => {
       });
     }
 
-    return res.status(200);
+    return res.status(200).send();
   })(req, res, next);
 });
 
 // Toggle open/close of the admin's location
 app.post("/api/toggleOpen", (req, res, next) => {
-  passport.authenticate("session", (err) => {
+  passport.authenticate("local", (err) => {
     if (err) {
       return res.status(500).json({ error: err });
     }
@@ -289,7 +286,7 @@ app.post("/api/toggleOpen", (req, res, next) => {
       },
     });
 
-    return res.status(200);
+    return res.status(200).send();
   })(req, res, next);
 });
 
