@@ -96,6 +96,7 @@ const io = require("socket.io")(http);
 
 io.on("connection", (socket) => {
   // send initial data to client
+  socket.emit("title", process.env.TITLE ? process.env.TITLE : "Capacitor");
   socket.emit("locations", locations);
 });
 

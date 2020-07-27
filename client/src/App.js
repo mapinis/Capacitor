@@ -20,7 +20,7 @@ class App extends React.Component {
     super(props);
     this.state = {
       locations: {},
-      title: "Capacitor",
+      title: "",
       loading: true,
     };
 
