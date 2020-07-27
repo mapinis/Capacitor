@@ -3,8 +3,16 @@
     "name": "Mountainside Pool",
     "capacity": 90,
     "coordinates": {
-      "long": 40.852465,
-      "lat": -74.203941
+      "lat": 40.852465,
+      "long": -74.203941
+    }
+  },
+  "nishuane": {
+    "name": "Nishuane Pool",
+    "capacity": 90,
+    "coordinates": {
+      "lat": 40.800778,
+      "long": -74.222727
     }
   }
 }
