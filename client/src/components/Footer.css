@@ -1,0 +1,29 @@
+.Footer {
+  min-height: min-content;
+  padding: 10px 0px;
+  width: 100vw;
+  background-color: #2e6480;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  position: absolute;
+  bottom: 0;
+}
+
+.FooterContent {
+  margin: auto;
+  max-width: 50%;
+  font-size: 14px;
+  color: #a8e2ff;
+  display: flex;
+  flex: 1 0 auto;
+}
+
+.FooterContent a {
+  color: #a8e2ff;
+  text-decoration: underline;
+}
+
+.FooterContent a:hover {
+  color: #8cbcd4;
+}
