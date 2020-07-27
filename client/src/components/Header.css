@@ -7,6 +7,8 @@
 
 .HeaderContent {
   display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin: auto;
   max-width: 50%;
   flex: 1 0 auto;
