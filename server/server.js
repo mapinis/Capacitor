@@ -60,6 +60,7 @@ passport.use(
         });
       }
 
+      // TODO: hashed admin password
       if (password !== adminPassword) {
         return done(null, false, { message: "Incorrect credentials" });
       }
@@ -117,24 +118,41 @@ app.post("/api/login", (req, res, next) => {
         return res.status(500).json({ error: err });
       }
 
-      console.log("Admin successfully logged in from " + req.ip);
+      console.log("INFO: Admin logged in from " + req.ip);
       return res.status(200).send();
     });
   })(req, res, next);
 });
 
-// Make sure that the session is valid
-app.get("/api/validateSession", (req, res, next) => {
+// Lot out a user
+app.post("/api/logout", (req, res, next) => {
   passport.authenticate("local", (err) => {
     if (err) {
       return res.status(500).json({ error: err });
     }
 
     if (!req.user) {
-      return res.status(200).json({ validSession: false });
+      return res.status(401).json({ error: { message: "Not Logged in." } });
     }
 
-    return res.status(200).json({ validSession: true });
+    sessions.delete(req.user.id);
+    req.logout();
+    return res.status(200).send();
+  })(req, res, next);
+});
+
+// Check the user is logged in and return the locationID if so
+app.get("/api/getLocationID", (req, res, next) => {
+  passport.authenticate("local", (err) => {
+    if (err) {
+      return res.status(500).json({ error: err });
+    }
+
+    if (!req.user) {
+      return res.status(401).json({ error: { message: "Not Logged in." } });
+    }
+
+    return res.status(200).json({ locationID: req.user.locationID });
   })(req, res, next);
 });
 
@@ -228,8 +246,17 @@ app.post("/api/setPopulation", (req, res, next) => {
       });
     }
 
+    if (!req.body.newPop.match(/\d+/)) {
+      return res.status(400).json({
+        error: {
+          message:
+            "JSON body property 'newPop' must be a non-negative integer.",
+        },
+      });
+    }
+
     const locationID = req.user.locationID;
-    const newPop = req.body.newPop;
+    const newPop = Number.parseInt(req.body.newPop);
 
     if (!locations[locationID]) {
       return res.status(400).json({ error: { message: "Bad locationID" } });
