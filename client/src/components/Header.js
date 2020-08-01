@@ -7,6 +7,7 @@ import { Button } from "react-bootstrap";
 const Header = (props) => {
   const history = useHistory();
 
+  // TODO hide admin login button in mobile
   return (
     <div className='Header'>
       <div className='HeaderContent'>

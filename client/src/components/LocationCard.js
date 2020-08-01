@@ -37,6 +37,21 @@ class LocationCard extends React.Component {
 
     return (
       <Card className='locationCard' border='secondary'>
+        {locationData.imagePath && locationData.coordinates && (
+          <a
+            href={`https://www.google.com/maps/search/?api=1&query=${locationData.coordinates.lat},${locationData.coordinates.lng}`}
+            target='_blank'
+            rel='noopener noreferrer'
+          >
+            <Card.Img
+              variant='top'
+              src={
+                (process.env.REACT_APP_DEV ? "http://localhost:8080" : "") +
+                locationData.imagePath
+              }
+            />
+          </a>
+        )}
         <Card.Body>
           <Card.Title>{locationData.name}</Card.Title>
           <OpenClosedIndicator open={locationData.open} />

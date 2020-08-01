@@ -181,7 +181,7 @@ app.post("/api/addOne", (req, res, next) => {
         .json({ error: { message: "Bad user locationID" } });
     }
 
-    // TODO: should locations be allowed to go over capacity? legally of course not, but what if some scenario it does happen, should this still keep track?
+    // should locations be allowed to go over capacity? legally of course not, but what if some scenario it does happen, should this still keep track?
     if (
       locations[locationID].population != locations[locationID].capacity &&
       locations[locationID].open
@@ -326,7 +326,11 @@ app.post("/api/toggleOpen", (req, res, next) => {
 
 // serve frontend
 const path = require("path");
-app.use(express.static(path.join(__dirname, "client/build")));
+app.use(express.static(path.join(__dirname, "../client/build")));
+
+app.get("/img/*", (req, res) => {
+  res.sendFile(path.join(__dirname, req.url));
+});
 
 app.get("*", (_, res) => {
   res.sendFile(path.join(__dirname, "../client/build/index.html"));

@@ -10,7 +10,21 @@ function loadLocations() {
   for (let locationID in locationData) {
     locationData[locationID].population = 0;
     locationData[locationID].open = false;
-    // here is where we load image(s) from Google Maps API too
+
+    if (locationData[locationID].coordinates) {
+      if (!process.env.GMAPS_STATIC_API_KEY) {
+        console.warn(
+          "Warning: Coordinates for " +
+            locationData[locationID].name +
+            " provided without environment variable GMAPS_STATIC_API_KEY, using placeholder image instead."
+        );
+
+        locationData[locationID].imagePath = "/img/placeholder.jpg";
+      }
+
+      // TODO get image from google here
+      locationData[locationID].imagePath = "/img/placeholder.jpg";
+    }
   }
 
   return locationData;
