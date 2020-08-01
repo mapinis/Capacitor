@@ -19,6 +19,8 @@ function loadLocations() {
             " provided without environment variable GMAPS_STATIC_API_KEY, using placeholder image instead."
         );
 
+        // this could go wrong if someone's locationID is "placeholder" while also providing *actual* coordinates
+        // I think if someone actually does that, they deserve the pain, but at the same time I hope it never does
         locationData[locationID].imagePath = "/img/placeholder.jpg";
       }
 

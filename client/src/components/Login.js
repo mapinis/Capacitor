@@ -58,10 +58,10 @@ class Login extends React.Component {
     return (
       <Form className='Login'>
         <Form.Group as={Row} controlId='locationID'>
-          <Form.Label column sm={3}>
+          <Form.Label column sm={5}>
             Location:
           </Form.Label>
-          <Col sm={4}>
+          <Col sm={7}>
             <Form.Control ref={this.locationID} as='select'>
               {Object.entries(this.context).map(([id, { name }]) => (
                 <option key={id} value={id}>
@@ -72,10 +72,10 @@ class Login extends React.Component {
           </Col>
         </Form.Group>
         <Form.Group as={Row} controlId='password'>
-          <Form.Label column sm={3}>
+          <Form.Label column sm={5}>
             Admin Password:
           </Form.Label>
-          <Col sm={4}>
+          <Col sm={7}>
             <Form.Control ref={this.password} type='password' />
           </Col>
         </Form.Group>
