@@ -11,8 +11,8 @@ export default () => (
         license.{" "}
         <a href='https://github.com/mapinis/capacitor'>Source on GitHub.</a>
         <br />
-        DISCLAIMER: Current tech demo is not representative of actual
-        capacities, populations, or open/closed states.
+        DISCLAIMER: This tech demo is not representative of actual capacities,
+        populations, or open/closed states.
         <br />
         Copyright © Mark Apinis 2020
       </div>

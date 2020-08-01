@@ -1,6 +1,6 @@
 .content {
   display: flex;
   justify-content: center;
-  max-width: 50%;
+  max-width: 950px;
   margin: 50px auto auto auto;
 }

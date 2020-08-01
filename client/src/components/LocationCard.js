@@ -8,8 +8,32 @@ import "./LocationCard.css";
 class LocationCard extends React.Component {
   static contextType = LocationsContext;
 
+  rgbToHex = (r, g, b) =>
+    "#" +
+    [r, g, b]
+      .map((x) => {
+        const hex = x.toString(16);
+        return hex.length === 1 ? "0" + hex : hex;
+      })
+      .join("");
+
+  lowColor = [88, 255, 127];
+  highColor = [255, 28, 27];
+
   render() {
     const locationData = this.context[this.props.locationID];
+
+    const ratio = locationData.population / locationData.capacity;
+
+    const percent = (ratio * 100).toFixed(0);
+
+    const color = !locationData.open
+      ? "#000"
+      : this.rgbToHex(
+          ...this.lowColor.map((c, i) =>
+            Math.round(c * (1 - ratio) + this.highColor[i] * ratio)
+          )
+        );
 
     return (
       <Card className='locationCard' border='secondary'>
@@ -20,10 +44,14 @@ class LocationCard extends React.Component {
             Capacity: {locationData.capacity}
             <br />
             Population: {locationData.population} (
-            {((locationData.population * 100) / locationData.capacity).toFixed(
-              0
-            )}
-            %)
+            <span
+              style={{
+                color: color,
+              }}
+            >
+              {percent}%
+            </span>
+            )
           </Card.Text>
         </Card.Body>
       </Card>

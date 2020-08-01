@@ -3,7 +3,7 @@ import React from "react";
 import "./OpenClosedIndicator.css";
 
 export default (props) => {
-  const color = props.open ? "#33FF64" : "#FF4542";
+  const color = props.open ? "#2EE85A" : "#FF4542";
 
   return (
     <div

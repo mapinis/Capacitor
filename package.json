@@ -6,6 +6,7 @@
   "author": "Mark Apinis <mapinis2001@gmail.com>",
   "license": "MIT",
   "dependencies": {
+    "bcrypt": "^5.0.0",
     "body-parser": "^1.19.0",
     "create-react-app": "^3.4.1",
     "dotenv": "^8.2.0",

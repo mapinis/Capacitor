@@ -3,6 +3,7 @@ require("dotenv").config();
 /* Build Server */
 const express = require("express");
 const bodyParser = require("body-parser");
+const bcrypt = require("bcrypt");
 
 const app = express();
 const http = require("http").createServer(app);
@@ -36,11 +37,11 @@ if (process.env.DEV) {
 const passport = require("passport");
 const LocalStrategy = require("passport-local").Strategy;
 
-const adminPassword = process.env.ADMIN_PASSWORD;
+let adminHash = process.env.ADMIN_HASH;
 
-if (!adminPassword) {
-  console.warn("ADMIN_PASSWORD not set in .env, defaulting to 'admin'");
-  adminPassword = "admin";
+if (!adminHash) {
+  console.warn("ADMIN_HASH not set in .env, defaulting to 'admin'");
+  adminHash = "$2b$10$qYh3lwkmVIIPSK5TgirU5ONT/OyFdG4Jerp3YRjand9WE/nHTbKdK";
 }
 
 const { v1: uuid } = require("uuid");
@@ -60,14 +61,19 @@ passport.use(
         });
       }
 
-      // TODO: hashed admin password
-      if (password !== adminPassword) {
-        return done(null, false, { message: "Incorrect credentials" });
-      }
+      return bcrypt.compare(password, adminHash, (err, match) => {
+        if (err) {
+          return done(null, false, { message: err });
+        }
 
-      const id = uuid();
-      sessions.set(id, locationID);
-      return done(null, { id: id, locationID: locationID });
+        if (!match) {
+          return done(null, false, { message: "Incorrect credentials" });
+        }
+
+        const id = uuid();
+        sessions.set(id, locationID);
+        return done(null, { id: id, locationID: locationID });
+      });
     }
   )
 );
@@ -97,7 +103,7 @@ const io = require("socket.io")(http);
 
 io.on("connection", (socket) => {
   // send initial data to client
-  socket.emit("title", process.env.TITLE ? process.env.TITLE : "Capacitor");
+  socket.emit("title", process.env.TITLE || "Capacitor");
   socket.emit("locations", locations);
 });
 

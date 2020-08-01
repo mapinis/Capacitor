@@ -1,0 +1,31 @@
+.AdminPage {
+  width: 90%;
+}
+
+.AdminTitle {
+  font-size: 25px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.AdminBody {
+  display: flex;
+  flex-wrap: wrap;
+  border: solid 1px darkgray;
+  border-radius: 5px;
+  padding: 40px 90px;
+  margin-top: 10px;
+}
+
+.AdminEdit {
+  margin-left: 60px;
+}
+
+.AdminEditItem {
+  margin-bottom: 15px;
+}
+
+.CustomPopulation {
+  margin-top: 10px;
+  max-width: 250px;
+}

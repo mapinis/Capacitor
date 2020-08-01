@@ -3,6 +3,7 @@ import { Router, Switch, Route, Redirect } from "react-router-dom";
 import socketIOClient from "socket.io-client";
 import dotenv from "dotenv";
 import { createBrowserHistory } from "history";
+import { Helmet } from "react-helmet";
 
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
@@ -73,6 +74,9 @@ class App extends React.Component {
   render() {
     return (
       <div className='App'>
+        <Helmet>
+          <title>{this.state.title}</title>
+        </Helmet>
         {this.state.loading && (
           <h3 style={{ textAlign: "center", marginTop: "50px" }}>Loading...</h3>
         )}

@@ -3,7 +3,7 @@ import parameterize from "../util/parameterize";
 import callAPI from "../util/callAPI";
 
 // A Login Component for the admins, with locationID and password.
-// In the future, this will use the context to have a drop down of location IDs
+// TODO: use the context to have a drop down of location IDs
 //  - Optional prop 'onSuccess' expects a function that takes in the location ID that was logged in under
 //  - Option prop 'onFailure' expects a function that takes in an error object
 class Login extends React.Component {
