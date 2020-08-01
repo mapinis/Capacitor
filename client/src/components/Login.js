@@ -1,9 +1,13 @@
 import React from "react";
 import parameterize from "../util/parameterize";
 import callAPI from "../util/callAPI";
+import LocationsContext from "../util/LocationsContext";
+
+import { Form, Row, Col, Button, Alert } from "react-bootstrap";
+
+import "./Login.css";
 
 // A Login Component for the admins, with locationID and password.
-// TODO: use the context to have a drop down of location IDs
 //  - Optional prop 'onSuccess' expects a function that takes in the location ID that was logged in under
 //  - Option prop 'onFailure' expects a function that takes in an error object
 class Login extends React.Component {
@@ -18,6 +22,8 @@ class Login extends React.Component {
     this.password = React.createRef();
     this.handleSubmit = this.handleSubmit.bind(this);
   }
+
+  static contextType = LocationsContext;
 
   handleSubmit(event) {
     event.preventDefault();
@@ -50,22 +56,36 @@ class Login extends React.Component {
 
   render() {
     return (
-      <div>
-        <form onSubmit={this.handleSubmit}>
-          <label>
-            Location ID:
-            <input type='text' ref={this.locationID} />
-          </label>
-          <label>
-            Password:
-            <input type='password' ref={this.password} />
-          </label>
-          <input type='submit' value='Submit' />
-        </form>
+      <Form className='Login'>
+        <Form.Group as={Row} controlId='locationID'>
+          <Form.Label column sm={3}>
+            Location:
+          </Form.Label>
+          <Col sm={4}>
+            <Form.Control ref={this.locationID} as='select'>
+              {Object.entries(this.context).map(([id, { name }]) => (
+                <option key={id} value={id}>
+                  {name}
+                </option>
+              ))}
+            </Form.Control>
+          </Col>
+        </Form.Group>
+        <Form.Group as={Row} controlId='password'>
+          <Form.Label column sm={3}>
+            Admin Password:
+          </Form.Label>
+          <Col sm={4}>
+            <Form.Control ref={this.password} type='password' />
+          </Col>
+        </Form.Group>
         {this.state.error && (
-          <div style={{ color: "red" }}>{this.state.error.message}</div>
+          <Alert variant='danger'>{this.state.error.message}</Alert>
         )}
-      </div>
+        <Button variant='primary' type='submit' onClick={this.handleSubmit}>
+          Submit
+        </Button>
+      </Form>
     );
   }
 }

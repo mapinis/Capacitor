@@ -5,7 +5,7 @@ import "./Footer.css";
 export default () => (
   <div className='Footer'>
     <div className='FooterContent'>
-      <div>
+      <div className='FooterInner'>
         <b>Capacitor</b>, made by{" "}
         <a href='https://github.com/mapinis'>Mark Apinis</a> under the MIT
         license.{" "}
