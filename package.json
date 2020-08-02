@@ -6,7 +6,7 @@
   "author": "Mark Apinis <mapinis2001@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "start": "cd ../server && node server.js",
+    "start": "cd server && node server.js",
     "build": "yarn install && cd client && yarn install && yarn build"
   },
   "dependencies": {
