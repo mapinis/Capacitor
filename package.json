@@ -6,7 +6,7 @@
   "author": "Mark Apinis <mapinis2001@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "prod": "cd client && yarn build && cd ../server && node server.js"
+    "prod": "yarn install && cd client && yarn install && yarn build && cd ../server && node server.js"
   },
   "dependencies": {
     "bcrypt": "^5.0.0",
