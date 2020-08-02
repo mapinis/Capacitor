@@ -30,21 +30,25 @@ function loadLocations() {
         // I think if someone actually does that, they deserve the pain, but at the same time I hope it never does
         locationData[locationID].imagePath = "img/placeholder.jpg";
       } else {
-        const { lat, lng } = locationData[locationID].coordinates;
-        const url = `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}&zoom=15&format=jpg&size=500x350&key=${process.env.GMAPS_STATIC_API_KEY}`;
+        // to save calls on API, only fetch the image if the image doesn't exist
+        // this also allows for custom images by simply placing an image with the name "{locationID}.jpg" in the image folder
+        if (!fs.existsSync(`img/${locationID}.jpg`)) {
+          const { lat, lng } = locationData[locationID].coordinates;
+          const url = `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lng}&zoom=15&format=jpg&size=500x350&key=${process.env.GMAPS_STATIC_API_KEY}`;
 
-        fetch(url)
-          .then((res) => res.arrayBuffer())
-          .then((imageBuffer) => {
-            fs.open(`img/${locationID}.jpg`, "w", (err, fd) => {
-              if (err) {
-                console.error(err);
-                process.exit(-1);
-              }
+          fetch(url)
+            .then((res) => res.arrayBuffer())
+            .then((imageBuffer) => {
+              fs.open(`img/${locationID}.jpg`, "w", (err, fd) => {
+                if (err) {
+                  console.error(err);
+                  process.exit(-1);
+                }
 
-              fs.writevSync(fd, [new Uint8Array(imageBuffer)], 0);
+                fs.writevSync(fd, [new Uint8Array(imageBuffer)], 0);
+              });
             });
-          });
+        }
 
         locationData[locationID].imagePath = `img/${locationID}.jpg`;
       }
