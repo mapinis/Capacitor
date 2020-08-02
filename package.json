@@ -6,7 +6,9 @@
   "author": "Mark Apinis <mapinis2001@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "prod": "yarn install && cd client && yarn install && yarn build && cd ../server && node server.js"
+    "start": "cd ../server && node server.js",
+    "build": "yarn install && cd client && yarn install && yarn build",
+    "heroku-postbuild": "yarn install && cd client && yarn install && yarn build"
   },
   "dependencies": {
     "bcrypt": "^5.0.0",
