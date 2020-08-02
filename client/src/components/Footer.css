@@ -5,9 +5,8 @@
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  position: absolute;
   background-color: #2e6480;
-  bottom: 0;
+  margin-top: auto;
 }
 
 .FooterContent {
