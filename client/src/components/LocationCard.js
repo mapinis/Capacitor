@@ -46,7 +46,7 @@ class LocationCard extends React.Component {
             <Card.Img
               variant='top'
               src={
-                (process.env.REACT_APP_DEV ? "http://localhost:8080/" : "") +
+                (process.env.REACT_APP_DEV ? "http://localhost:8080/" : "/") +
                 locationData.imagePath
               }
             />

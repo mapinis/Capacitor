@@ -81,27 +81,25 @@ class App extends React.Component {
           <h3 style={{ textAlign: "center", marginTop: "50px" }}>Loading...</h3>
         )}
         {!this.state.loading && (
-          <>
-            <LocationsContext.Provider value={this.state.locations}>
-              <Router history={this.history}>
-                <Header title={this.state.title} />
-                <div className='content'>
-                  <Switch>
-                    <Route path='/admin'>
-                      <AdminPage />
-                    </Route>
-                    <Route path='/:e'>
-                      <Redirect to='/' />
-                    </Route>
-                    <Route path='/'>
-                      <MainPage />
-                    </Route>
-                  </Switch>
-                </div>
-                <Footer />
-              </Router>
-            </LocationsContext.Provider>
-          </>
+          <LocationsContext.Provider value={this.state.locations}>
+            <Router history={this.history}>
+              <Header title={this.state.title} />
+              <div className='content'>
+                <Switch>
+                  <Route path='/admin'>
+                    <AdminPage />
+                  </Route>
+                  <Route path='/:e'>
+                    <Redirect to='/' />
+                  </Route>
+                  <Route path='/'>
+                    <MainPage />
+                  </Route>
+                </Switch>
+              </div>
+              <Footer />
+            </Router>
+          </LocationsContext.Provider>
         )}
       </div>
     );

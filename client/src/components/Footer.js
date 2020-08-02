@@ -6,8 +6,8 @@ import "./Footer.css";
 
 dotenv.config();
 
-export default () => (
-  // hacky but the only solution I see
+// hacky but the only solution I see
+const Footer = () => (
   <div style={isBrowser ? { bottom: 0 } : {}} className='Footer'>
     <div className='FooterContent'>
       <div className='FooterInner'>
@@ -28,3 +28,5 @@ export default () => (
     </div>
   </div>
 );
+
+export default Footer;
