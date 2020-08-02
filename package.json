@@ -5,6 +5,9 @@
   "repository": "git@github.com:mapinis/capacitor.git",
   "author": "Mark Apinis <mapinis2001@gmail.com>",
   "license": "MIT",
+  "scripts": {
+    "prod": "cd client && yarn build && cd ../server && node server.js"
+  },
   "dependencies": {
     "bcrypt": "^5.0.0",
     "body-parser": "^1.19.0",
