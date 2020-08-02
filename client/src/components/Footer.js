@@ -1,12 +1,14 @@
 import dotenv from "dotenv";
 import React from "react";
+import { isBrowser } from "react-device-detect";
 
 import "./Footer.css";
 
 dotenv.config();
 
 export default () => (
-  <div className='Footer'>
+  // hacky but the only solution I see
+  <div style={isBrowser ? { bottom: 0 } : {}} className='Footer'>
     <div className='FooterContent'>
       <div className='FooterInner'>
         <b>Capacitor</b>, made by{" "}
