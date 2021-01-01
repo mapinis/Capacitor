@@ -1,6 +1,6 @@
 # Capacitor
 
-An easy website for live view of location capacity and open/closed state, with a simple and clean design that updates immediately for all viewers.
+An easy website for a live view of location capacity and open/closed state, with a simple and clean design that updates immediately for all viewers.
 
 Demo live at https://capacitor-demo.herokuapp.com/, with admin password set to 'admin'.
 
